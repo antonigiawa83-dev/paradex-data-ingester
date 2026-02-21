@@ -7,22 +7,19 @@ import (
 	"time"
 )
 
-// Trade mewakili data transaksi di Paradex
 type Trade struct {
 	TradeID   int     `json:"trade_id"`
 	Symbol    string  `json:"symbol"`
 	Price     float64 `json:"price"`
 	Amount    float64 `json:"amount"`
-	Side      string  `json:"side"` // "buy" atau "sell"
+	Side      string  `json:"side"`
 	Timestamp string  `json:"timestamp"`
 }
 
 func main() {
 	fmt.Println("Paradex Real-time Ingester Engine is running...")
 
-	// Simulasi stream data tanpa henti
 	for i := 1; ; i++ {
-		// Logika acak untuk menentukan buy/sell
 		side := "buy"
 		if rand.Intn(2) == 0 {
 			side = "sell"
@@ -37,11 +34,14 @@ func main() {
 			Timestamp: time.Now().Format(time.RFC3339),
 		}
 
-		// Mengubah struct menjadi JSON (Data Serialization)
-		data, _ := json.Marshal(trade)
-		fmt.Println(string(data))
+		// LOGIKA MONITORING: Tandai jika harga di atas ambang batas
+		if trade.Price > 95350 {
+			fmt.Printf("⚠️  ALERT: High Volatility! Price: %.2f\n", trade.Price)
+		}
 
-		// Di industri nyata, data ini dikirim ke Kafka atau Clickhouse
+		jsonData, _ := json.Marshal(trade)
+		fmt.Println(string(jsonData))
+
 		time.Sleep(2 * time.Second) 
 	}
 }
