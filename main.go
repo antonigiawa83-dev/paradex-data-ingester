@@ -41,7 +41,7 @@ func main() {
 
 		jsonData, _ := json.Marshal(trade)
 		fmt.Println(string(jsonData))
-
+        SimpanData(trade)
 		time.Sleep(2 * time.Second) 
 	}
 }
