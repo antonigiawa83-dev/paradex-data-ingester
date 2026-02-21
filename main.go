@@ -17,7 +17,13 @@ type Trade struct {
 }
 
 func main() {
-	fmt.Println("Paradex Real-time Ingester Engine is running...")
+	fmt.Println("=== Paradex Data Pipeline System Starting ===")
+
+	// 1. Jalankan Consumer sebagai background process (Worker)
+	// Ini akan mengambil data dari 'buffer' secara asinkron
+	go RunConsumer()
+
+	fmt.Println(" [MAIN] Ingester Engine is active...")
 
 	for i := 1; ; i++ {
 		side := "buy"
@@ -34,14 +40,18 @@ func main() {
 			Timestamp: time.Now().Format(time.RFC3339),
 		}
 
-		// LOGIKA MONITORING: Tandai jika harga di atas ambang batas
+		// LOGIKA MONITORING
 		if trade.Price > 95350 {
 			fmt.Printf("⚠️  ALERT: High Volatility! Price: %.2f\n", trade.Price)
 		}
 
+		// Tampilkan log data mentah
 		jsonData, _ := json.Marshal(trade)
-		fmt.Println(string(jsonData))
-        SimpanData(trade)
+		fmt.Println(" [INGEST] Received: ", string(jsonData))
+
+		// 2. Kirim data ke Broker (Storage Layer)
+		SimpanData(trade)
+
 		time.Sleep(2 * time.Second) 
 	}
 }
