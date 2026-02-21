@@ -1,8 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
-// SimpanData simulasi pengiriman data ke database OLAP
+// SimpanData sekarang mensimulasikan pengiriman ke Message Broker (Kafka/Redpanda)
 func SimpanData(trade Trade) {
-	fmt.Printf(" [DB-SAVE] Berhasil menyimpan transaksi ID %d ke Clickhouse\n", trade.TradeID)
+	fmt.Printf(" [BROKER] Mengirim transaksi ID %d ke Topic 'paradex-trades'...\n", trade.TradeID)
+	
+	// Simulasi sedikit delay jaringan ke broker
+	time.Sleep(10 * time.Millisecond) 
+	
+	fmt.Printf(" [SUCCESS] Data aman di buffer. Database tetap stabil.\n")
 }
