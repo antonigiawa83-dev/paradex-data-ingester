@@ -4,4 +4,4 @@ Ingest real-time trade events from Paradex.
 
 Store trade data into high-performance OLAP database (Clickhouse).
 
-Monitor trading volum
+Monitor trading volum spikes
