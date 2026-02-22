@@ -1,37 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Paradex Mock Dashboard</title>
+    <title>Paradex Professional Chart</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; }
-        .price-card { border: 2px solid #00ffcc; display: inline-block; padding: 20px; border-radius: 10px; margin-top: 50px; }
-        #price { font-size: 48px; color: #00ffcc; }
+        body { font-family: sans-serif; background: #0b0e11; color: white; margin: 0; padding: 20px; }
+        #chart-container { width: 100%; height: 400px; margin-top: 20px; border: 1px solid #2b2f36; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #161a1e; }
+        .price-up { color: #00ffcc; font-size: 24px; }
     </style>
 </head>
 <body>
-    <h1>Paradex Real-Time Tracker</h1>
-    <div class="price-card">
-        <h2 id="symbol">Loading...</h2>
-        <div id="price">$ 0.00</div>
-        <p>Last Update: <span id="time">-</span></p>
+    <div class="header">
+        <div><strong>BTC-USD</strong> - Paradex Dashboard</div>
+        <div id="last-price" class="price-up">Loading...</div>
     </div>
+    
+    <div id="chart-container"></div>
 
     <script>
-        async function fetchTrade() {
-            // Di dunia nyata, ini akan menembak ke server Go kita
-            // Karena ini simulasi di browser, kita panggil API kita
+        // 1. Inisialisasi Grafik
+        const chart = LightweightCharts.createChart(document.getElementById('chart-container'), {
+            layout: { backgroundColor: '#0b0e11', textColor: '#d1d4dc' },
+            grid: { vertLines: { color: '#1f2226' }, horzLines: { color: '#1f2226' } },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+            timeScale: { timeVisible: true, secondsVisible: true }
+        });
+
+        const lineSeries = chart.addLineSeries({
+            color: '#00ffcc',
+            lineWidth: 2,
+        });
+
+        // 2. Fungsi Ambil Data dari API Go
+        async function updateData() {
             try {
-                const response = await fetch('http://localhost:8080/api/trade');
-                const data = await response.json();
-                document.getElementById('symbol').innerText = data.symbol;
-                document.getElementById('price').innerText = '$ ' + data.price.toFixed(2);
-                document.getElementById('time').innerText = data.timestamp;
-            } catch (err) {
-                console.log("Server Go belum jalan di lokal, tapi kodenya sudah benar!");
+                const res = await fetch('http://localhost:8080/api/history');
+                const data = await res.json();
+                
+                // Format data untuk library grafik
+                const formattedData = data.map(d => ({
+                    time: d.time,
+                    value: d.price
+                }));
+
+                lineSeries.setData(formattedData);
+                
+                const latest = data[data.length - 1];
+                document.getElementById('last-price').innerText = '$ ' + latest.price.toFixed(2);
+            } catch (e) {
+                console.log("Menunggu koneksi server...");
             }
         }
-        // Update data setiap 2 detik
-        setInterval(fetchTrade, 2000);
+
+        // Jalankan update setiap 2 detik
+        setInterval(updateData, 2000);
     </script>
 </body>
 </html>
