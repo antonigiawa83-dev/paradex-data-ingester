@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paradex Mock Dashboard</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; }
+        .price-card { border: 2px solid #00ffcc; display: inline-block; padding: 20px; border-radius: 10px; margin-top: 50px; }
+        #price { font-size: 48px; color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <h1>Paradex Real-Time Tracker</h1>
+    <div class="price-card">
+        <h2 id="symbol">Loading...</h2>
+        <div id="price">$ 0.00</div>
+        <p>Last Update: <span id="time">-</span></p>
+    </div>
+
+    <script>
+        async function fetchTrade() {
+            // Di dunia nyata, ini akan menembak ke server Go kita
+            // Karena ini simulasi di browser, kita panggil API kita
+            try {
+                const response = await fetch('http://localhost:8080/api/trade');
+                const data = await response.json();
+                document.getElementById('symbol').innerText = data.symbol;
+                document.getElementById('price').innerText = '$ ' + data.price.toFixed(2);
+                document.getElementById('time').innerText = data.timestamp;
+            } catch (err) {
+                console.log("Server Go belum jalan di lokal, tapi kodenya sudah benar!");
+            }
+        }
+        // Update data setiap 2 detik
+        setInterval(fetchTrade, 2000);
+    </script>
+</body>
+</html>
