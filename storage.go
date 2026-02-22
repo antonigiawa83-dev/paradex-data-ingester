@@ -1,16 +1,7 @@
 package main
 
-import (
-	"fmt"
-	"time"
-)
+import "fmt"
 
-// SimpanData sekarang mensimulasikan pengiriman ke Message Broker (Kafka/Redpanda)
-func SimpanData(trade Trade) {
-	fmt.Printf(" [BROKER] Mengirim transaksi ID %d ke Topic 'paradex-trades'...\n", trade.TradeID)
-	
-	// Simulasi sedikit delay jaringan ke broker
-	time.Sleep(10 * time.Millisecond) 
-	
-	fmt.Printf(" [SUCCESS] Data aman di buffer. Database tetap stabil.\n")
+func SimpanData(t Trade) {
+	fmt.Printf(" [BROKER] Pushing price %.2f to buffer...\n", t.Price)
 }
