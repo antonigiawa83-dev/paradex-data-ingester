@@ -2,7 +2,8 @@ package main
 
 import "fmt"
 
-// Pastikan parameter 't' menggunakan tipe Trade yang baru (Price & Time saja)
-func SimpanData(t Trade) {
-	fmt.Printf(" [BROKER] Recording price: %.2f at timestamp: %d\n", t.Price, t.Time)
+// SimpanData menerima struct Trade yang baru (hanya Price dan Time)
+func SimpanData(trade Trade) {
+	// Kita hapus TradeID karena sudah tidak ada di struct utama
+	fmt.Printf(" [STORAGE] Data tersimpan: Harga %.2f pada waktu %d\n", trade.Price, trade.Time)
 }
