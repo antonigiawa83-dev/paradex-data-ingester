@@ -4,53 +4,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"net/http" // Package untuk membuat Server Web
+	"net/http"
 	"time"
 )
 
 type Trade struct {
-	TradeID   int     `json:"trade_id"`
-	Symbol    string  `json:"symbol"`
 	Price     float64 `json:"price"`
-	Amount    float64 `json:"amount"`
-	Side      string  `json:"side"`
-	Timestamp string  `json:"timestamp"`
+	Time      int64   `json:"time"`
 }
 
-// Global variable untuk menyimpan data terakhir (simulasi database)
-var lastTrade Trade
+// Menyimpan riwayat data untuk grafik
+var tradeHistory []Trade
 
 func main() {
-	fmt.Println("=== Paradex API & Ingester System Starting ===")
+	fmt.Println("=== Paradex Chart Engine Starting ===")
 
-	// 1. Jalankan Ingester di background agar data terus terupdate
 	go func() {
-		for i := 1; ; i++ {
-			lastTrade = Trade{
-				TradeID:   i,
-				Symbol:    "BTC-USD",
-				Price:     67000 + (rand.Float64() * 500),
-				Amount:    rand.Float64() * 0.5,
-				Side:      "buy",
-				Timestamp: time.Now().Format(time.RFC3339),
+		for {
+			newTrade := Trade{
+				Price: 67000 + (rand.Float64() * 500),
+				Time:  time.Now().Unix(),
+			}
+			// Simpan ke riwayat
+			tradeHistory = append(tradeHistory, newTrade)
+			
+			// Batasi hanya 50 data terakhir agar tidak berat
+			if len(tradeHistory) > 50 {
+				tradeHistory = tradeHistory[1:]
 			}
 			time.Sleep(2 * time.Second)
 		}
 	}()
 
-	// 2. Endpoint API: Browser akan mengambil data dari sini
-	http.HandleFunc("/api/trade", getTradeHandler)
+	http.HandleFunc("/api/history", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		json.NewEncoder(w).Encode(tradeHistory)
+	})
 
-	fmt.Println(" [SERVER] API is running on http://localhost:8080/api/trade")
-	
-	// Jalankan Server di Port 8080
+	fmt.Println(" [SERVER] Running on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
-}
-
-func getTradeHandler(w http.ResponseWriter, r *http.Request) {
-	// Memberitahu browser bahwa kita mengirim data JSON
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*") // Agar bisa diakses dari Web mana saja
-	
-	json.NewEncoder(w).Encode(lastTrade)
 }
