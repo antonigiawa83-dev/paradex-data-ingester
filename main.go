@@ -9,11 +9,10 @@ import (
 )
 
 type Trade struct {
-	Price     float64 `json:"price"`
-	Time      int64   `json:"time"`
+	Price float64 `json:"price"`
+	Time  int64   `json:"time"`
 }
 
-// Menyimpan riwayat data untuk grafik
 var tradeHistory []Trade
 
 func main() {
@@ -25,13 +24,12 @@ func main() {
 				Price: 67000 + (rand.Float64() * 500),
 				Time:  time.Now().Unix(),
 			}
-			// Simpan ke riwayat
 			tradeHistory = append(tradeHistory, newTrade)
-			
-			// Batasi hanya 50 data terakhir agar tidak berat
 			if len(tradeHistory) > 50 {
 				tradeHistory = tradeHistory[1:]
 			}
+			// Panggil fungsi simpan (untuk simulasi broker)
+			SimpanData(newTrade) 
 			time.Sleep(2 * time.Second)
 		}
 	}()
