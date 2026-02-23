@@ -20,7 +20,7 @@
 
         async function updateData() {
             try {
-                const res = await fetch('http://localhost:8080/api/history');
+               const res = await fetch('http://localhost:8080/data');
                 const data = await res.json();
                 lineSeries.setData(data.map(d => ({ time: d.time, value: d.price })));
             } catch (e) { console.log("Waiting for Go server..."); }
