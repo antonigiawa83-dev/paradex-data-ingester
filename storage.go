@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// Struktur data utama yang digunakan bersama
+// Definisi Trade harus ada di sini agar dikenal oleh consumer.go dan main.go
 type Trade struct {
 	Price float64 `json:"price"`
 	Time  int64   `json:"time"`
@@ -16,25 +16,35 @@ var (
 	mu          sync.Mutex
 )
 
-// Inisialisasi awal
+// Fungsi untuk menyiapkan tempat penyimpanan
 func InitStorage() {
+	mu.Lock()
+	defer mu.Unlock()
 	historyData = make([]Trade, 0)
 }
 
-// Menyimpan data baru (digunakan oleh consumer.go)
+// Fungsi untuk menyimpan data (dipanggil oleh consumer.go)
 func SaveTrade(price float64, timestamp int64) {
 	mu.Lock()
 	defer mu.Unlock()
-	historyData = append(historyData, Trade{Price: price, Time: timestamp})
+	
+	newData := Trade{Price: price, Time: timestamp}
+	historyData = append(historyData, newData)
+	
+	// Batasi hanya 100 data agar tidak lambat
 	if len(historyData) > 100 {
 		historyData = historyData[1:]
 	}
 }
 
-// Mengambil data untuk API (digunakan oleh main.go)
+// Fungsi untuk mengambil data dalam format JSON (dipanggil oleh main.go)
 func GetHistoryJSON() string {
 	mu.Lock()
 	defer mu.Unlock()
-	bytes, _ := json.Marshal(historyData)
+	
+	bytes, err := json.Marshal(historyData)
+	if err != nil {
+		return "[]"
+	}
 	return string(bytes)
 }
