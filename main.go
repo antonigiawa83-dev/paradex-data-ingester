@@ -3,58 +3,61 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
+	"sync"
 	"time"
 )
 
-// Struct Trade ini harus SAMA di semua file agar tidak error
-type Trade struct {
+// Struktur data untuk grafik
+type TradeData struct {
 	Price float64 `json:"price"`
 	Time  int64   `json:"time"`
 }
 
-// Variabel untuk menyimpan riwayat data grafik
-var tradeHistory []Trade
+var (
+	history     []TradeData
+	historyLock sync.Mutex
+)
 
 func main() {
-	fmt.Println("=== Paradex Data Pipeline System Starting ===")
-
-	// 1. Jalankan Ingester & Storage secara paralel
+	// Goroutine untuk simulasi data (pengganti consumer jika belum konek ke bursa)
 	go func() {
 		for {
-			// Membuat data trade baru (Hanya Price dan Time)
-			newTrade := Trade{
-				Price: 67000 + (rand.Float64() * 500),
+			historyLock.Lock()
+			newData := TradeData{
+				Price: 67000.0 + (time.Now().Unix() % 100).ToFloat64(), // Harga simulasi sesuai screenshot
 				Time:  time.Now().Unix(),
 			}
-
-			// Simpan ke riwayat untuk ditampilkan di grafik (maks 50 data)
-			tradeHistory = append(tradeHistory, newTrade)
-			if len(tradeHistory) > 50 {
-				tradeHistory = tradeHistory[1:]
+			history = append(history, newData)
+			// Batasi data agar tidak lemot (simpan 100 data terakhir)
+			if len(history) > 100 {
+				history = history[1:]
 			}
-
-			// MEMANGGIL FUNGSI DARI storage.go
-			// Pastikan storage.go kamu sudah menggunakan: func SimpanData(t Trade)
-			SimpanData(newTrade)
-
+			fmt.Printf("[STORAGE] Data tersimpan: Harga %.2f pada waktu %d\n", newData.Price, newData.Time)
+			historyLock.Unlock()
 			time.Sleep(2 * time.Second)
 		}
 	}()
 
-	// 2. MEMANGGIL FUNGSI DARI consumer.go
-	go RunConsumer()
-
-	// 3. API Endpoint untuk index.html (Grafik)
+	// Endpoint API yang dipanggil oleh index.html
 	http.HandleFunc("/api/history", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+		// --- SURAT IZIN (CORS) DIMULAI ---
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		json.NewEncoder(w).Encode(tradeHistory)
+		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		w.Header().Set("Content-Type", "application/json")
+		// --- SURAT IZIN (CORS) SELESAI ---
+
+		historyLock.Lock()
+		json.NewEncoder(w).Encode(history)
+		historyLock.Unlock()
 	})
 
-	fmt.Println(" [SERVER] API aktif di http://localhost:8080/api/history")
-	
-	// Jalankan server web
+	fmt.Println("=== Paradex Data Pipeline System Starting ===")
+	fmt.Println("[SERVER] API aktif di http://localhost:8080/api/history")
 	http.ListenAndServe(":8080", nil)
+}
+
+// Fungsi pembantu untuk konversi
+func (i int64) ToFloat64() float64 {
+	return float64(i)
 }
