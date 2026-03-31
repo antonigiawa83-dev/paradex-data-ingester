@@ -24,6 +24,10 @@ func main() {
 
 	fmt.Println("=== Paradex Ecosystem Connected ===")
 	fmt.Println("[SERVER] API Aktif di http://localhost:8080/api/history")
+
+	// Melayani file statis dari folder saat ini
+http.Handle("/", http.FileServer(http.Dir("./")))
+
 	
 	// Jalankan server
 	http.ListenAndServe(":8080", nil)
